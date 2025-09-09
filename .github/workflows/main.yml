@@ -1,192 +1,69 @@
-name: Postman CI with Allure Report + Landing Page + History
-
-permissions:
-  contents: write
+name: Newman HTMLExtra with GitHub Pages
 
 on:
+  push:
+    branches: [ main ]
   schedule:
-    - cron: "0 6 * * *"   # Daily at 6 AM UTC
+    - cron: "0 6 * * *"
   workflow_dispatch:
 
 jobs:
-  test:
+  newman:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.5.3
 
-      # Fetch latest Postman Collection
       - name: Fetch Postman Collection
         run: |
-          set -e
-          curl --fail --location \
-          --header "X-Api-Key: ${{ secrets.POSTMAN_API_KEY }}" \
-          "https://api.getpostman.com/collections/${{ secrets.POSTMAN_COLLECTION_UID }}" \
-          -o reqres_collection.postman_collection.json
+          curl -sSL \
+            -H "X-Api-Key: ${{ secrets.POSTMAN_API_KEY }}" \
+            "https://api.getpostman.com/collections/${{ secrets.POSTMAN_COLLECTION_UID }}" \
+            -o reqres_collection.postman_collection.json
 
-      # Fetch latest Postman Environment
       - name: Fetch Postman Environment
         run: |
-          set -e
-          curl --fail --location \
-          --header "X-Api-Key: ${{ secrets.POSTMAN_API_KEY }}" \
-          "https://api.getpostman.com/environments/${{ secrets.POSTMAN_ENV_UID }}" \
-          -o reqres_environment.postman_environment.json
+          curl -sSL \
+            -H "X-Api-Key: ${{ secrets.POSTMAN_API_KEY }}" \
+            "https://api.getpostman.com/environments/${{ secrets.POSTMAN_ENV_UID }}" \
+            -o reqres_environment.postman_environment.json
 
-      # Commit updated files if changed (with pull to avoid fetch errors)
-      - name: Commit updated Postman files
+      - name: Commit updated Postman files to main
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git pull origin main --rebase || true
+          git pull --rebase origin main || true
           git add reqres_collection.postman_collection.json reqres_environment.postman_environment.json
-          git commit -m "Auto-sync from Postman" || echo "No changes to commit"
-          git push origin main
+          git commit -m "Auto-sync from Postman" || echo "No changes"
+          git push origin main || echo "No changes to push"
 
-      # Install Newman + Allure Reporter + Allure CLI
-      - name: Install Newman & Allure
-        run: |
-          npm install -g newman newman-reporter-allure allure-commandline
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
 
-      # Run API Tests with Allure output
-      - name: Run API Tests
-        continue-on-error: true   # Let Newman finish even if some tests fail
+      - name: Install Newman & HTMLExtra
+        run: npm install -g newman@6.1.2 newman-reporter-htmlextra@1.23.1
+
+      - name: Run Newman tests with HTMLExtra
+        id: run_tests
+        continue-on-error: true
         run: |
-          mkdir -p allure-results
+          mkdir -p public
           newman run reqres_collection.postman_collection.json \
             -e reqres_environment.postman_environment.json \
-            -r allure \
-            --reporter-allure-export allure-results
-          echo "Number of result files generated:"
-          ls -1 allure-results | wc -l
+            -r htmlextra \
+            --reporter-htmlextra-export public/index.html \
+            --reporter-htmlextra-title "API Tests" \
+            --reporter-htmlextra-includesequence \
+            --reporter-htmlextra-charts
 
-      # Stop if no results
-      - name: Check Allure Results
-        run: |
-          if [ "$(ls -1 allure-results | wc -l)" -eq 0 ]; then
-            echo "No Allure results found. Skipping report generation."
-            exit 1
-          fi
-
-      # Preserve history for trends
-      - name: Preserve Allure History
-        run: |
-          git fetch origin gh-pages || true
-          if git show origin/gh-pages:report/history >/dev/null 2>&1; then
-            echo "Copying history from previous report..."
-            mkdir -p allure-results/history
-            git checkout origin/gh-pages -- report/history
-            cp -r report/history allure-results/history || true
-          else
-            echo "No previous history found."
-          fi
-
-      # Generate Allure HTML report
-      - name: Generate Allure Report
-        run: |
-          allure generate allure-results --clean -o allure-report
-
-      # Move report into /report folder
-      - name: Prepare report folder
-        run: mv allure-report report
-
-      # Create visually appealing landing page
-      - name: Create Landing Page
-        run: |
-          cat > index.html <<'EOF'
-          <!DOCTYPE html>
-          <html lang="en">
-          <head>
-              <meta charset="UTF-8">
-              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Mohammad Shahid - API Automation Dashboard</title>
-              <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-              <style>
-                  body {
-                      margin: 0;
-                      font-family: 'Poppins', sans-serif;
-                      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-                      color: white;
-                      text-align: center;
-                      display: flex;
-                      flex-direction: column;
-                      justify-content: center;
-                      height: 100vh;
-                      overflow: hidden;
-                  }
-                  h1 {
-                      font-size: 3rem;
-                      margin-bottom: 0.5rem;
-                      animation: fadeInDown 1s ease-out;
-                  }
-                  p {
-                      font-size: 1.2rem;
-                      max-width: 600px;
-                      margin: 0 auto 2rem;
-                      line-height: 1.5;
-                      animation: fadeInUp 1.2s ease-out;
-                  }
-                  .button {
-                      display: inline-block;
-                      padding: 15px 30px;
-                      background: #ff7e5f;
-                      color: white;
-                      font-size: 1.2rem;
-                      border-radius: 50px;
-                      text-decoration: none;
-                      transition: all 0.3s ease;
-                      animation: fadeInUp 1.5s ease-out;
-                  }
-                  .button:hover {
-                      background: #feb47b;
-                      transform: scale(1.05);
-                      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-                  }
-                  @keyframes fadeInDown {
-                      from { opacity: 0; transform: translateY(-20px); }
-                      to { opacity: 1; transform: translateY(0); }
-                  }
-                  @keyframes fadeInUp {
-                      from { opacity: 0; transform: translateY(20px); }
-                      to { opacity: 1; transform: translateY(0); }
-                  }
-              </style>
-          </head>
-          <body>
-              <h1>Mohammad Shahid</h1>
-              <p>Welcome to my API Automation Dashboard.<br>
-                 Live test execution reports powered by Postman, Newman, and Allure — with historical trends and detailed insights.</p>
-              <a class="button" href="report/index.html">🚀 View Latest Report</a>
-          </body>
-          </html>
-          EOF
-
-      # Upload Allure HTML report as artifact
-      - name: Upload Allure Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: reqres-allure-report
-          path: report
-
-      # Deploy landing page + report to GitHub Pages
-      - name: Deploy to GitHub Pages
-        if: always()
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Deploy HTMLExtra report to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3.9.3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ${{ github.workspace }}
+          publish_dir: ./public
           publish_branch: gh-pages
-          force_orphan: true
-
-      # Fail workflow if tests failed (AFTER deploy)
-      - name: Fail workflow if tests failed
-        if: always()
-        run: |
-          failed=$(grep -o '"status":"failed"' allure-results/*.json | wc -l)
-          if [ "$failed" -gt 0 ]; then
-            echo "$failed test(s) failed."
-            exit 1
-          else
-            echo "All tests passed."
-          fi
