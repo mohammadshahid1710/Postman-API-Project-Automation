@@ -48,29 +48,26 @@ jobs:
       - name: Install Newman & HTMLExtra
         run: npm install -g newman@6.1.2 newman-reporter-htmlextra@1.23.1
 
-      - name: Run Newman tests with HTMLExtra
+      - name: Run Newman tests with HTMLExtra and CLI summary
         id: run_tests
         continue-on-error: true
         run: |
           mkdir -p public
           newman run reqres_collection.postman_collection.json \
             -e reqres_environment.postman_environment.json \
-            -r htmlextra \
+            -r cli,htmlextra \
             --reporter-htmlextra-export public/index.html \
             --reporter-htmlextra-title "API Tests" \
             --reporter-htmlextra-includesequence \
             --reporter-htmlextra-charts
 
-      # Deploy only if tests passed
-      - name: Deploy HTMLExtra report to GitHub Pages
-        if: steps.run_tests.outcome == 'success'
+      - name: Deploy HTMLExtra report to GitHub Pages (always)
         uses: peaceiris/actions-gh-pages@v3.9.3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
           publish_branch: gh-pages
 
-      # Optional: mark workflow as failed if tests failed
       - name: Fail workflow if tests failed
         if: steps.run_tests.outcome != 'success'
         run: exit 1
