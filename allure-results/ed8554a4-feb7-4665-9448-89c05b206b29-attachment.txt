@@ -1,9 +1,0 @@
-// Get the original user_id
-let originalId = parseInt(pm.environment.get("user_id"));
-
-// Add 12 to it
-let newId = originalId + 12;
-
-// Save the new value as a separate variable
-pm.environment.set("user_id_plus_12", newId);
-

@@ -1,8 +1,0 @@
-// Generate a random user_id between 1 and 12 (inclusive)
-let userId = Math.floor(Math.random() * 12) + 1;
-
-// Set it as an environment variable
-pm.environment.set("user_id", userId);
-
-// Optional: Log it for debugging
-console.log("Random user_id set to:", userId);

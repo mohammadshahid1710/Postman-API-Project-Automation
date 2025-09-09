@@ -1,3 +1,0 @@
-level: log, messages: Status Code:,201
-level: log, messages: User created with ID: 732
-level: log, messages: Request Body Sent:,[object Object]

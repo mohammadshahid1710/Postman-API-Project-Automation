@@ -1,3 +1,0 @@
-if (pm.environment.get("baseURL") !== "https://reqres.in/api") {
-    throw new Error(`Wrong baseURL: ${pm.environment.get("baseURL")}. Please select ReqRes_QA environment.`);
-}
