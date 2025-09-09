@@ -1,0 +1,32 @@
+//Status code check
+pm.test("Status is 201 Created", () => {
+    console.log("Status Code:", pm.response.code);
+    pm.response.to.have.status(201);
+});
+
+//Parse JSON response once
+let jsonData = pm.response.json();
+console.log(`User created with ID: ${jsonData.id}`);
+
+// Get the request body you sent
+let requestBody = JSON.parse(pm.request.body.raw);
+console.log("Request Body Sent:", requestBody);
+
+//Name matches
+pm.test("Name matches request body", () => {
+    pm.expect(jsonData.name, "Name field should exist").to.exist;
+    pm.expect(jsonData.name).to.eql(requestBody.name);
+});
+
+//Job matches
+pm.test("Job matches request body", () => {
+    pm.expect(jsonData.job, "Job field should exist").to.exist;
+    pm.expect(jsonData.job).to.eql(requestBody.job);
+});
+
+//ID is a string containing only digits
+pm.test("ID is a string containing only numbers", () => {
+    pm.expect(jsonData.id, "ID field should exist").to.exist;
+    pm.expect(jsonData.id).to.be.a('string');
+    pm.expect(jsonData.id).to.match(/^\d+$/);
+});

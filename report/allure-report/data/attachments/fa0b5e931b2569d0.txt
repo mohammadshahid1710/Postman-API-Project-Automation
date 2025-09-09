@@ -1,0 +1,21 @@
+//Status code check
+pm.test("Status is 200", () => {
+    console.log("Status Code:", pm.response.code);
+    pm.response.to.have.status(200);
+});
+
+// Parse JSON once
+let res = pm.response.json();
+console.log("Full Response Body:", res);
+
+//Job updated check
+pm.test("Job updated", () => {
+    console.log("Job in response:", res.job);
+    pm.expect(res.job).to.eql("QA Engineer");
+});
+
+//Name updated check
+pm.test("Name updated", () => {
+    console.log("Name in response:", res.name);
+    pm.expect(res.name).to.eql("Mohammad Shahid");
+});

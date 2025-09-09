@@ -1,0 +1,30 @@
+//Check status
+pm.test("Status is 200", () => {
+    console.log("Status Code:", pm.response.code);
+    pm.response.to.have.status(200);
+});
+
+// Get expected user ID from environment
+let expectedUserId = parseInt(pm.environment.get("user_id"));
+console.log("Expected User ID:", expectedUserId);
+
+// Parse response once
+let jsonData = pm.response.json().data;
+console.log("User Data from Response:", jsonData);
+
+//Check 'data' exists
+pm.test("'data' is present", () => {
+    pm.expect(jsonData).to.exist;
+});
+
+//Check ID matches
+pm.test("User ID matches expected", () => {
+    pm.expect(jsonData.id).to.eql(expectedUserId);
+});
+
+//Check key fields are filled
+pm.test("Email, First Name, Last Name are present", () => {
+    pm.expect(jsonData.email).to.be.a("string").and.not.empty;
+    pm.expect(jsonData.first_name).to.be.a("string").and.not.empty;
+    pm.expect(jsonData.last_name).to.be.a("string").and.not.empty;
+});

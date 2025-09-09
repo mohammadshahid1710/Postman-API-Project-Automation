@@ -1,0 +1,16 @@
+//Status code check
+pm.test("Status is 400", () => {
+    console.log("Status Code:", pm.response.code);
+    pm.response.to.have.status(400);
+});
+
+// Parse JSON response
+let res = pm.response.json();
+console.log("Full Response Body:", res);
+
+//Error message presence check
+pm.test("Error message present", () => {
+    pm.expect(res.error, "Error field should exist").to.exist;
+    console.log("Error message:", res.error);
+    pm.expect(res.error).to.include("Missing");
+});

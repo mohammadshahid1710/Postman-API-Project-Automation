@@ -1,0 +1,18 @@
+//Status code check
+pm.test("Status is 200", () => {
+    console.log("Status Code:", pm.response.code);
+    pm.response.to.have.status(200);
+});
+
+// Parse JSON response
+let res = pm.response.json();
+console.log("Full Response Body:", res);
+
+//Token presence check
+pm.test("Token is present in response", () => {
+    pm.expect(res.token, "Token should not be null or undefined").to.exist;
+});
+
+// Save token to environment
+pm.environment.set("token", res.token);
+console.log(`Token stored in environment: ${res.token}`);

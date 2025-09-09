@@ -1,0 +1,5 @@
+level: log, messages: Status Code:,200
+level: log, messages: Full Response Body:,[object Object]
+level: log, messages: User count in response:,6
+level: log, messages: Requested page:,2
+level: log, messages: Page in response:,2

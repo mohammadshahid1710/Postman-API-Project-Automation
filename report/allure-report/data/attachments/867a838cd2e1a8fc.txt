@@ -1,0 +1,27 @@
+pm.test("Status is 200", () => {
+    console.log("Status Code:", pm.response.code);
+    pm.response.to.have.status(200);
+});
+
+let responseData = pm.response.json();
+console.log("Full Response Body:", responseData);
+
+pm.test("Has at least 1 user", () => {
+    console.log("User count:", responseData.data.length);
+    pm.expect(responseData.data.length).to.be.above(0);
+});
+
+pm.test("per_page is a positive number", () => {
+    console.log("per_page value:", responseData.per_page);
+    pm.expect(responseData.per_page).to.be.a('number').and.to.be.above(0);
+});
+
+pm.test("total is a number", () => {
+    console.log("total value:", responseData.total);
+    pm.expect(responseData.total).to.be.a('number');
+});
+
+pm.test("total_pages is a number", () => {
+    console.log("total_pages value:", responseData.total_pages);
+    pm.expect(responseData.total_pages).to.be.a('number');
+});

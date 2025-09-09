@@ -1,0 +1,3 @@
+level: log, messages: Status Code:,400
+level: log, messages: Full Response Body:,[object Object]
+level: log, messages: Error message:,Missing email or username

@@ -1,0 +1,1 @@
+{"error":"Empty request body","message":"Request body cannot be empty for JSON endpoints"}

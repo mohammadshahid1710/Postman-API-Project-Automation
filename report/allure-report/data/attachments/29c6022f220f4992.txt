@@ -1,0 +1,5 @@
+// Generate a random page number greater than 2
+let invalid_page_number = Math.floor(Math.random() * 10) + 3;
+
+// Set it as an environment variable
+pm.environment.set("invalid_page_number", invalid_page_number);

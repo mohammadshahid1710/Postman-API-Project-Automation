@@ -1,0 +1,6 @@
+level: log, messages: Status Code:,200
+level: log, messages: Full Response Body:,[object Object]
+level: log, messages: 'data' field value:,[object Object]
+level: log, messages: 'id' value inside 'data':,4
+level: log, messages: Stored resource_id:,4
+level: log, messages: Response 'id':,4
