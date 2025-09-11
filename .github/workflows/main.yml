@@ -1,4 +1,4 @@
-name: Newman HTMLExtra with GitHub Pages
+name: API Test Automation - Newman + GitHub Pages
 
 on:
   push:
@@ -14,24 +14,24 @@ jobs:
       contents: write
 
     steps:
-      - name: Checkout repo
+      - name: ✅ Checkout repository
         uses: actions/checkout@v3.5.3
 
-      - name: Fetch Postman Collection
+      - name: 📥 Fetch Postman Collection
         run: |
           curl -sSL \
             -H "X-Api-Key: ${{ secrets.POSTMAN_API_KEY }}" \
             "https://api.getpostman.com/collections/${{ secrets.POSTMAN_COLLECTION_UID }}" \
             -o reqres_collection.postman_collection.json
 
-      - name: Fetch Postman Environment
+      - name: 📥 Fetch Postman Environment
         run: |
           curl -sSL \
             -H "X-Api-Key: ${{ secrets.POSTMAN_API_KEY }}" \
             "https://api.getpostman.com/environments/${{ secrets.POSTMAN_ENV_UID }}" \
             -o reqres_environment.postman_environment.json
 
-      - name: Commit updated Postman files to main
+      - name: 🔄 Commit updated Postman files to main
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
@@ -40,15 +40,15 @@ jobs:
           git commit -m "Auto-sync from Postman" || echo "No changes"
           git push origin main || echo "No changes to push"
 
-      - name: Setup Node.js
+      - name: ⚙️ Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20'
 
-      - name: Install Newman & HTMLExtra
+      - name: 📦 Install Newman & HTMLExtra
         run: npm install -g newman@6.1.2 newman-reporter-htmlextra@1.23.1
 
-      - name: Run Newman tests with HTMLExtra and CLI summary
+      - name: 🚀 Run Newman tests with HTMLExtra and CLI summary
         id: run_tests
         continue-on-error: true
         run: |
@@ -57,17 +57,34 @@ jobs:
             -e reqres_environment.postman_environment.json \
             -r cli,htmlextra \
             --reporter-htmlextra-export public/index.html \
-            --reporter-htmlextra-title "API Tests" \
+            --reporter-htmlextra-title "Newman Run Dashboard" \
             --reporter-htmlextra-includesequence \
             --reporter-htmlextra-charts
 
-      - name: Deploy HTMLExtra report to GitHub Pages (always)
+      - name: 📤 Upload HTMLExtra report as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: newman-html-report
+          path: public/index.html
+
+      - name: 🌐 Deploy HTMLExtra report to GitHub Pages
+        if: always()
         uses: peaceiris/actions-gh-pages@v3.9.3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
           publish_branch: gh-pages
 
-      - name: Fail workflow if tests failed
+      - name: 📝 Post run summary
+        if: always()
+        run: |
+          echo "## ✅ Newman Run Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Workflow:** $GITHUB_WORKFLOW" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch:** $GITHUB_REF_NAME" >> $GITHUB_STEP_SUMMARY
+          echo "- **Run Number:** $GITHUB_RUN_NUMBER" >> $GITHUB_STEP_SUMMARY
+          echo "- **Report:** [View HTMLExtra Report](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/)" >> $GITHUB_STEP_SUMMARY
+
+      - name: ❌ Fail workflow if tests failed
         if: steps.run_tests.outcome != 'success'
         run: exit 1
