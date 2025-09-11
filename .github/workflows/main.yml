@@ -62,7 +62,7 @@ jobs:
             --reporter-htmlextra-charts
 
       - name: 📤 Upload HTMLExtra report as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: newman-html-report
           path: public/index.html
